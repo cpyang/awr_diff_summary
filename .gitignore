@@ -1,0 +1,8 @@
+# Sample AWR diff reports (input data) and generated outputs
+awrdiff_*.html
+awrdiff_*.md
+summary.md
+
+# Python
+__pycache__/
+*.pyc
