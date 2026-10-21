@@ -46,6 +46,10 @@ python3 awr_to_markdown.py "AWR report.html"
 
 # convert to a file and also dump the structured model as JSON
 python3 awr_to_markdown.py "AWR report.html" -o report.md --dump-json report.json
+
+# batch: convert every AWR report in a folder (diff reports are skipped —
+# they belong to awr_diff_all.sh); --json also writes the models
+./awr_all.sh reports/Sources --json
 ```
 
 | Option | Meaning |
