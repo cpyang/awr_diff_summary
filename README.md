@@ -30,6 +30,47 @@ That's it. No network access, no database connection, no installation steps.
 
 ---
 
+## 0. Companion tool: `awr_to_markdown.py` (regular AWR reports)
+
+`awr_diff_summary.py` above distils **Compare-Period** reports. For **regular
+single-range AWR reports** (the HTML `awrrpt` produces, including RAC / global
+reports), `awr_to_markdown.py` performs a faithful *format conversion* to
+Markdown — every section, table, note, ASH block, ADDM task and SQL-text
+appendix — so the result can be analysed directly (by a human or an LLM
+skill). It reuses the lenient DOM parser from `awr_diff_summary.py`; it is
+also pure stdlib.
+
+```bash
+# convert (stdout)
+python3 awr_to_markdown.py "AWR report.html"
+
+# convert to a file and also dump the structured model as JSON
+python3 awr_to_markdown.py "AWR report.html" -o report.md --dump-json report.json
+```
+
+| Option | Meaning |
+| --- | --- |
+| `-o FILE` | write Markdown to FILE (default: stdout) |
+| `--sql-text-chars N` | truncate SQL text inside metric tables to N chars (default 100, `0` = full) |
+| `--max-cell N` | hard cap for any table cell (default 200) |
+| `--dump-json PATH` | dump the structured model (sections → tables/rows) as JSON |
+
+Notes on the conversion:
+
+* Two-row table headers (group row with colspans + leaf row) are flattened:
+  `Wait Time` ∕ `Total(s)` → `Wait Time Total(s)`; repeated leaf names get
+  numbered suffixes so JSON keys stay unique.
+* RAC `I#` rows (`*` = cluster-wide totals, `1`/`2` per instance, plus
+  `Sum`/`Avg`/`Min`/`Max`/`Std`) are preserved verbatim.
+* "Complete List of SQL Text" is emitted as one fenced ```sql block per SQL
+  Id (newlines intact); SQL text in other tables is one-line truncated.
+* ADDM tasks pass through verbatim as code blocks — they are in the report's
+  NLS language (Chinese reports produce Chinese ADDM text).
+* `<pre>` blocks, descriptive bullet notes and "No data exists for this
+  section" markers are all kept.
+
+---
+
 ## 2. Quick start
 
 ```bash
