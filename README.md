@@ -75,6 +75,42 @@ Notes on the conversion:
 
 ---
 
+## 0b. Companion tool: `awr_rac_balance.py` (RAC node balance)
+
+Where `awr_to_markdown.py` converts regular reports, `awr_rac_balance.py`
+consumes their Markdown output when it was produced **per RAC instance**
+and answers two questions: *how unbalanced is each cluster?* and *why?*
+Pure stdlib, Python 3.8+.
+
+```bash
+./awr_rac_balance.py reports/HA                       # folder of *.md reports
+./awr_rac_balance.py reports/HA --threshold 1.1 --json model.json
+./awr_rac_balance.py reports/HA --db HFPCDB --db HPCBDB
+```
+
+1. **Balance table** — per-instance AAS, the two-node DB-Time split, the
+   high/low ratio and key rates (CPU/s, executes/s, redo, transactions,
+   GC blocks received, logons/s, sessions), clusters sorted by ratio.
+2. **Cause detail** for every cluster at/above `--threshold`: per-service
+   DB Time on each node, and the SQL with the largest *absolute* elapsed
+   time difference between nodes — which pinpoints jobs or clients that
+   run on one node only (e.g. a `DBMS_SCHEDULER` chain that never leaves
+   instance 1, or a reporting pool pinned to instance 2).
+
+Reports are deduped by (DB, instance), so duplicate copies of the same
+report (`*dr.md` / `*st.md`) count once, and ASH reports (no AWR header)
+are skipped with a note.
+
+| Option | Meaning |
+| --- | --- |
+| `folder` | directory of converted reports (default `reports/HA`) |
+| `--json PATH` | also dump the parsed per-instance model as JSON |
+| `--db NAME` | restrict the cause-detail section to this DB (repeatable) |
+| `--threshold R` | ratio at/above which a cluster gets cause detail (default 1.25) |
+| `--top N` | max SQL rows per cluster in cause detail (default 10) |
+
+---
+
 ## 2. Quick start
 
 ```bash
